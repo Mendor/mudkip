@@ -4,8 +4,9 @@ defmodule Mudkip.Mixfile do
   def project do
     [ app: :mudkip,
       version: "0.0.1",
-      elixir: "~> 0.10.4-dev",
-      deps: deps ]
+      elixir: "~> 0.10.3",
+      deps: deps,
+      compile_path: "ebin" ]
   end
 
   # Configuration for the OTP application
