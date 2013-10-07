@@ -15,11 +15,12 @@ defmodule Mudkip do
   defp try_render_line(line) do
     line |> apply_header
          |> apply_rulers
-         |> apply_lists
          |> apply_links
+         |> apply_lists
          |> apply_bold
          |> apply_italic
          |> apply_monospace
+         |> apply_blockquotes
          # |> apply_linebreaks_fix
          |> apply_paragraphs
   end
@@ -39,22 +40,20 @@ defmodule Mudkip do
   end
 
   defp apply_lists(line) do
-    line
-    # case Regex.run(%r/^\s?\*/, line) do
-    #   nil ->
-    #     line
-    #   _not_nil ->
-    #     elems = String.split(line, %r/\n\s?\*/)
-    #     ["<ul>", lc item inlist elems do
-    #       rendered = try_render_line(item)
-    #       Regex.replace(%r/^(<p>)?(.*)(<\/p>)?$/, rendered, format(:li, "\\2"))
-    #     end, "</ul>"]
-    # end
+    case Regex.run(%r/^\s?[\*\+\-]/, line) do
+      nil ->
+        line
+      _not_nil ->
+        lc item inlist String.split(line, %r/\n\s?[\*\+\-]/) do
+          format(:li, item)
+        end
+    end
   end
 
   defp apply_links(line) do
     line2 = Regex.replace(%r/<(.+(\:\/\/|@).+)>/, line, format_link("href=\"\\1\"", "\\1"))
-    Regex.replace(%r/\[([^\]]+)\]\(([^\)]+)\)/, line2, format_link("href=\"\\2\"", "\\1"))
+    line3 = Regex.replace(%r/\[([^\]]+)\]\(([^\)\s]+)\)/, line2, format_link("href=\"\\2\"", "\\1"))
+    Regex.replace(%r/\[([^\]]+)\]\(([^\)\s]+)\s([^\)]+)\)/, line3, format_link("title=\\3 href=\"\\2\"", "\\1"))
   end
 
   defp apply_bold(line) do
@@ -69,6 +68,15 @@ defmodule Mudkip do
 
   defp apply_monospace(line) do
     Regex.replace(%r/`([^`]+)`/, line, format(:code, "\\1"))
+  end
+
+  defp apply_blockquotes(line) do
+    case Regex.run(%r/^>\s?(.*)/, line) do
+      nil ->
+        line
+      [_, line2] ->
+        format(:blockquote, line2)
+    end
   end
 
   defp apply_linebreaks_fix(line) do
