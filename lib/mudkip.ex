@@ -7,22 +7,36 @@ defmodule Mudkip do
 
   def render(indata) do
     indata_l = String.split(indata <> "\n", %r/\n\n+/)
-    lc line inlist indata_l do
+    join(lc line inlist indata_l do
       try_render_line(line)
-    end
+    end)
   end
 
   defp try_render_line(line) do
-    line |> apply_header
-         |> apply_rulers
-         |> apply_links
-         |> apply_lists
-         |> apply_bold
-         |> apply_italic
-         |> apply_monospace
-         |> apply_blockquotes
-         # |> apply_linebreaks_fix
-         |> apply_paragraphs
+    preline = apply_pre(line)
+    if line == preline do
+      line |> apply_header
+           |> apply_rulers
+           |> apply_links
+           |> apply_lists
+           |> apply_bold
+           |> apply_italic
+           |> apply_monospace
+           |> apply_blockquotes
+           |> apply_linebreaks_fix
+           |> apply_paragraphs
+    else
+      preline
+    end
+  end
+
+  defp apply_pre(line) do
+    case Regex.run(%r/^(?:\s{4}|\t)(.*)$/s, line) do
+      nil ->
+        line
+      [_, found] ->
+        format(:pre, Regex.replace(%r/(?:\n\s{4}|\t)(.*)/, found, "\\1"))
+    end
   end
 
   defp apply_header(line) do
@@ -40,13 +54,13 @@ defmodule Mudkip do
   end
 
   defp apply_lists(line) do
-    case Regex.run(%r/^\s?[\*\+\-]/, line) do
+    case Regex.run(%r/^\s?[\*\+\-]\s(.*)$/s, line) do
       nil ->
         line
-      _not_nil ->
-        lc item inlist String.split(line, %r/\n\s?[\*\+\-]/) do
+      [_, found] ->
+        format(:ul, join(lc item inlist String.split(found, %r/\n\s?[\*\+\-]\s/) do
           format(:li, item)
-        end
+        end))
     end
   end
 
@@ -67,7 +81,7 @@ defmodule Mudkip do
   end
 
   defp apply_monospace(line) do
-    Regex.replace(%r/`([^`]+)`/, line, format(:code, "\\1"))
+    Regex.replace(%r/`([^`]+)`/, line, format(:pre, "\\1"))
   end
 
   defp apply_blockquotes(line) do
@@ -84,7 +98,7 @@ defmodule Mudkip do
   end
 
   defp apply_paragraphs(line) do
-    Regex.replace(%r/^([^<].*[^>])$/, line, format(:p, "\\1"))
+    Regex.replace(%r/^((?!(<h|<blo|<ul|<ol|<pre)).*)$/s, line, format(:p, "\\1"))
   end
 
   defp format(tag, data) do
@@ -92,7 +106,19 @@ defmodule Mudkip do
   end
 
   defp format_link(params, data) do
+    # mailed = Regex.replace(%r/href=\"([^(\:\/\/)]+@.+)\"/, params, "href=\"mailto:\1\"")
     "<a " <> params <> ">" <> data <> "</a>"
+  end
+
+  defp join(bins) do
+    join(bins, "")
+  end
+
+  defp join([], acc) do
+    acc
+  end
+  defp join([line | other], acc) do
+    join(other, acc <> line)
   end
   
 end
