@@ -24,6 +24,8 @@ TODO
 
 * __refactor__
 * code comments
+* ExUnit tests
+
 
 + reference links
 + shortcut references
