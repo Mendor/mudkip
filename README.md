@@ -1,4 +1,4 @@
-Mudkip 0.0.1
+Mudkip 0.0.2
 ============
 
 Elixir library for Markdown rendering.
@@ -13,9 +13,9 @@ Usage
 -----
 
 ```elixir
-iex(1)> Mudkip.render("*this* __will__ be `formatted`")
+iex(1)> Mudkip.compile("*this* __will__ be `formatted`")
 "<p><em>this</em> <strong>will</strong> be <pre>formatted</pre>\n</p>"
-iex(2)> String.slice Mudkip.render_file("test.md"), 0, 50 
+iex(2)> String.slice Mudkip.compile_file("test.md"), 0, 50 
 "<p>Headers:</p><h1>h1</h1><h2>h2</h2><h3>h3</h3><h"
 ```
 
@@ -23,15 +23,7 @@ TODO
 ----
 
 * __refactor__
-* code comments
 * ExUnit tests
-
-
-+ reference links
-+ shortcut references
-+ `___bold italic___`
-+ HTML escaping
-+ embedded lists
 
 License
 -------
